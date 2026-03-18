@@ -1,10 +1,19 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+def get_start_menu_kb():
+    builder = InlineKeyboardBuilder()
+    builder.button(text="🎮 Приложения и игры", callback_data="main_menu")
+    builder.button(text="🎧 Поддержка", callback_data="btn_support")
+    builder.button(text="ℹ️ Информация", callback_data="btn_info")
+    builder.adjust(1)
+    return builder.as_markup()
+
 def get_main_menu_kb(categories: dict):
     builder = InlineKeyboardBuilder()
     for key, data in categories.items():
         builder.button(text=data["title"], callback_data=f"cat_{key}")
+    builder.button(text="🔙 В главное меню", callback_data="start_menu")
     builder.adjust(2) # 2 columns
     return builder.as_markup()
 

@@ -16,37 +16,98 @@ async def cmd_start(message: Message):
     # LOGGING
     await logger.log_action(message.bot, message.from_user, "🏁 <b>Нажал START</b>")
     
-    catalog = data_manager.load_data()
     await message.answer(
-        "💎 <b>VIP Catalog Store</b> 💎\n\n"
-        "Здесь собраны лучшие платные игры и PRO приложения, которые ты можешь получить <b>бесплатно</b>.\n\n"
-        "📱 <b>Совместимость:</b> iPhone X и новее\n"
-        "⚡️ <b>Без джейлбрека</b>\n\n"
-        "⬇️ <b>Выбери категорию:</b>",
-        reply_markup=keyboards.get_main_menu_kb(catalog),
+        "👋 <b>Добро пожаловать в VIP Catalog Store!</b>\n\n"
+        "Здесь ты найдешь лучшие платные игры и PRO приложения совершенно <b>бесплатно</b>.\n\n"
+        "👇 <b>Выберите раздел ниже:</b>",
+        reply_markup=keyboards.get_start_menu_kb(),
         parse_mode="HTML"
     )
+
+@router.callback_query(F.data == "start_menu")
+async def cb_start_menu(callback: CallbackQuery):
+    # LOGGING
+    await logger.log_action(callback.message.bot, callback.from_user, "🏠 <b>Перешел в Главное меню</b>")
+
+    try:
+        await callback.message.edit_text(
+            "👋 <b>Добро пожаловать в VIP Catalog Store!</b>\n\n"
+            "Здесь ты найдешь лучшие платные игры и PRO приложения совершенно <b>бесплатно</b>.\n\n"
+            "👇 <b>Выберите раздел ниже:</b>",
+            reply_markup=keyboards.get_start_menu_kb(),
+            parse_mode="HTML"
+        )
+    except Exception:
+        await callback.message.answer(
+            "👋 <b>Добро пожаловать в VIP Catalog Store!</b>\n\n"
+            "Здесь ты найдешь лучшие платные игры и PRO приложения совершенно <b>бесплатно</b>.\n\n"
+            "👇 <b>Выберите раздел ниже:</b>",
+            reply_markup=keyboards.get_start_menu_kb(),
+            parse_mode="HTML"
+        )
 
 @router.callback_query(F.data == "main_menu")
 async def cb_main_menu(callback: CallbackQuery):
     # LOGGING
-    await logger.log_action(callback.message.bot, callback.from_user, "🔙 <b>Вернулся в меню</b>")
+    await logger.log_action(callback.message.bot, callback.from_user, "🎮 <b>Открыл Игры и Приложения</b>")
 
     catalog = data_manager.load_data()
+    text = (
+        "💎 <b>VIP Catalog Store</b> 💎\n\n"
+        "Здесь собраны лучшие платные игры и PRO приложения.\n\n"
+        "📱 <b>Совместимость:</b> iPhone X и новее\n"
+        "⚡️ <b>Без джейлбрека</b>\n\n"
+        "⬇️ <b>Выбери категорию:</b>"
+    )
     try:
         await callback.message.edit_text(
-            "💎 <b>Главное Меню</b>\n\n"
-            "⬇️ <b>Выбери категорию:</b>",
+            text,
             reply_markup=keyboards.get_main_menu_kb(catalog),
             parse_mode="HTML"
         )
     except Exception:
         await callback.message.answer(
-            "💎 <b>Главное Меню</b>\n\n"
-            "⬇️ <b>Выбери категорию:</b>",
+            text,
             reply_markup=keyboards.get_main_menu_kb(catalog),
             parse_mode="HTML"
         )
+
+@router.callback_query(F.data == "btn_support")
+async def cb_support(callback: CallbackQuery):
+    # LOGGING
+    await logger.log_action(callback.message.bot, callback.from_user, "🎧 <b>Открыл Поддержку</b>")
+    owner = os.getenv("OWNER_USERNAME", "admin").replace("@", "").strip()
+    
+    builder = InlineKeyboardBuilder()
+    builder.button(text="Написать в поддержку", url=f"https://t.me/{owner}")
+    builder.button(text="🔙 В главное меню", callback_data="start_menu")
+    builder.adjust(1)
+    
+    await callback.message.edit_text(
+        "🎧 <b>Служба Поддержки</b>\n\n"
+        "Если у вас возникли вопросы, проблемы с установкой или скачиванием — напишите нашему менеджеру. Мы поможем вам в кратчайшие сроки!\n\n"
+        "💬 <i>Время ответа может составлять от 5 до 30 минут.</i>",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
+
+@router.callback_query(F.data == "btn_info")
+async def cb_info(callback: CallbackQuery):
+    # LOGGING
+    await logger.log_action(callback.message.bot, callback.from_user, "ℹ️ <b>Открыл Информацию</b>")
+    
+    builder = InlineKeyboardBuilder()
+    builder.button(text="🔙 В главное меню", callback_data="start_menu")
+    
+    await callback.message.edit_text(
+        "ℹ️ <b>Информация о проекте</b>\n\n"
+        "<b>VIP Catalog Store</b> — это проект, где мы собираем лучшие приложения и игры, предоставляя вам безопасный доступ к PRO-версиям.\n\n"
+        "✅ <b>Всё проверено на вирусы</b>\n"
+        "✅ <b>Работает без Jailbreak</b>\n"
+        "✅ <b>Безопасно для вашего устройства</b>",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
 
 @router.callback_query(F.data.startswith("cat_"))
 async def cb_category(callback: CallbackQuery):
